@@ -17,30 +17,44 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 // Replace this with your deployed backend URL (Render / Railway / etc.)
 // const API_BASE_URL = 'https://your-backend.onrender.com';
 // ───────────────────────────────────────────────────────────────────────────────
-const API_BASE_URL = 'http://10.135.196.193:5000';
+// const API_BASE_URL = 'http://10.135.196.193:5000';
+const API_BASE_URL = "https://chapapp-9j7b.onrender.com";
+
+
 export default function ChatScreen() {
-  const [username, setUsername]     = useState('');
-  const [message, setMessage]       = useState('');
-  const [messages, setMessages]     = useState([]);
-  const [loading, setLoading]       = useState(false);
-  const [sending, setSending]       = useState(false);
+  const [username, setUsername] = useState('');
+  const [message, setMessage] = useState('');
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
   const [usernameSet, setUsernameSet] = useState(false);
 
   const flatListRef = useRef(null);
-  const pollRef     = useRef(null);
+  const pollRef = useRef(null);
 
-  // ── Fetch messages from backend ──────────────────────────────────────────────
-  const fetchMessages = useCallback(async () => {
+const fetchMessages = useCallback(async () => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/messages`);
+
+    const text = await res.text();
+
     try {
-      const res  = await fetch(`${API_BASE_URL}/messages`);
-      const json = await res.json();
+      const json = JSON.parse(text);
+
       if (json.success) {
-        setMessages(json.data); // already latest-first from backend
+        setMessages(json.data);
+      } else {
+        console.log("API error:", json);
       }
+
     } catch (err) {
-      console.error('Fetch error:', err);
+      console.log("Non-JSON response:", text);
     }
-  }, []);
+
+  } catch (err) {
+    console.error("Fetch error:", err);
+  }
+}, []);
 
   // ── Poll every 3 seconds ─────────────────────────────────────────────────────
   useEffect(() => {
@@ -61,9 +75,9 @@ export default function ChatScreen() {
     setSending(true);
     try {
       const res = await fetch(`${API_BASE_URL}/message`, {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ username, message: trimmed }),
+        body: JSON.stringify({ username, message: trimmed }),
       });
       const json = await res.json();
 
@@ -218,21 +232,21 @@ export default function ChatScreen() {
 
 // ─── STYLES ──────────────────────────────────────────────────────────────────
 const COLORS = {
-  bg:         '#0b0b14',
-  surface:    '#13131f',
-  card:       '#1a1a2e',
-  accent:     '#7c6af7',
+  bg: '#0b0b14',
+  surface: '#13131f',
+  card: '#1a1a2e',
+  accent: '#7c6af7',
   accentDark: '#5548d9',
-  me:         '#7c6af7',
-  them:       '#1e1e35',
-  text:       '#e8e8f0',
-  muted:      '#666680',
-  border:     '#22223a',
+  me: '#7c6af7',
+  them: '#1e1e35',
+  text: '#e8e8f0',
+  muted: '#666680',
+  border: '#22223a',
 };
 
 const styles = StyleSheet.create({
-  flex:        { flex: 1 },
-  safeArea:    { flex: 1, backgroundColor: COLORS.bg },
+  flex: { flex: 1 },
+  safeArea: { flex: 1, backgroundColor: COLORS.bg },
 
   // ── Username screen ──
   usernameScreen: {
@@ -246,9 +260,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  logoIcon:    { fontSize: 64, marginBottom: 8 },
-  logoText:    { fontSize: 32, fontWeight: '800', color: COLORS.text, letterSpacing: -1 },
-  logoSub:     { fontSize: 14, color: COLORS.muted, marginTop: 6, textAlign: 'center' },
+  logoIcon: { fontSize: 64, marginBottom: 8 },
+  logoText: { fontSize: 32, fontWeight: '800', color: COLORS.text, letterSpacing: -1 },
+  logoSub: { fontSize: 14, color: COLORS.muted, marginTop: 6, textAlign: 'center' },
 
   usernameInput: {
     width: '100%',
@@ -281,10 +295,10 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  headerLeft:  { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  onlineDot:   { width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ade80' },
+  headerLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  onlineDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#4ade80' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, letterSpacing: -0.5 },
-  headerUser:  { fontSize: 13, color: COLORS.muted, fontWeight: '500' },
+  headerUser: { fontSize: 13, color: COLORS.muted, fontWeight: '500' },
 
   // ── Messages ──
   messageList: { paddingHorizontal: 16, paddingVertical: 12, gap: 10 },
@@ -304,7 +318,7 @@ const styles = StyleSheet.create({
     paddingTop: 80,
     gap: 6,
   },
-  emptyText:    { color: COLORS.muted, fontSize: 16 },
+  emptyText: { color: COLORS.muted, fontSize: 16 },
   emptySubText: { color: COLORS.muted, fontSize: 13 },
 
   bubble: {
@@ -333,9 +347,9 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  bubbleText:   { fontSize: 15, color: COLORS.text, lineHeight: 21 },
+  bubbleText: { fontSize: 15, color: COLORS.text, lineHeight: 21 },
   bubbleTextMe: { color: '#fff' },
-  bubbleTime:   { fontSize: 10, color: COLORS.muted, marginTop: 4, textAlign: 'right' },
+  bubbleTime: { fontSize: 10, color: COLORS.muted, marginTop: 4, textAlign: 'right' },
   bubbleTimeMe: { color: 'rgba(255,255,255,0.6)' },
 
   // ── Input bar ──
@@ -370,5 +384,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   sendButtonDisabled: { backgroundColor: COLORS.accentDark, opacity: 0.6 },
-  sendIcon:           { color: '#fff', fontSize: 16, marginLeft: 2 },
+  sendIcon: { color: '#fff', fontSize: 16, marginLeft: 2 },
 });
